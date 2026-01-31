@@ -1,0 +1,9 @@
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\bin\Debug\BankSystemBusinessLayer.dll
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\bin\Debug\BankSystemBusinessLayer.pdb
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\bin\Debug\BankSystemDataAccessLayer.dll
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\bin\Debug\BankSystemDataAccessLayer.pdb
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\obj\Debug\BankSystemBusinessLayer.csproj.AssemblyReference.cache
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\obj\Debug\BankSystemBusinessLayer.csproj.CoreCompileInputs.cache
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\obj\Debug\BankSyst.08F90534.Up2Date
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\obj\Debug\BankSystemBusinessLayer.dll
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystemBusinessLayer\obj\Debug\BankSystemBusinessLayer.pdb

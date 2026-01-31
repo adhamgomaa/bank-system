@@ -1,0 +1,21 @@
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystem - PresentationLayer.exe.config
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystem - PresentationLayer.exe
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystem - PresentationLayer.pdb
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystemBusinessLayer.dll
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystemDataAccessLayer.dll
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystemBusinessLayer.pdb
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\BankSystemDataAccessLayer.pdb
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem - PresentationLayer.csproj.AssemblyReference.cache
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.Client.resources
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.Properties.Resources.resources
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.Transaction.resources
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem - PresentationLayer.csproj.GenerateResource.cache
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem - PresentationLayer.csproj.CoreCompileInputs.cache
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSyst.EFA5DBED.Up2Date
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem - PresentationLayer.exe
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem - PresentationLayer.pdb
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.Users.resources
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.Home.resources
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.Login.resources
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\bin\Debug\Guna.UI2.dll
+C:\Users\Adham Gomaa\Documents\Bank System\BankSystem - PresentationLayer\obj\Debug\BankSystem___PresentationLayer.People.resources
