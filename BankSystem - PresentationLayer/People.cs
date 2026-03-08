@@ -217,5 +217,22 @@ namespace BankSystem___PresentationLayer
                 txtUpdatePhone.Text = "";
             }
         }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show($"Are you sure to Delete this person [{dgvShowPeople.CurrentRow.Cells[1].Value}]?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
+            {
+                if (clsPeople.DeletePerson((int)dgvShowPeople.CurrentRow.Cells[0].Value))
+                {
+                    MessageBox.Show($"User [{dgvShowPeople.CurrentRow.Cells[1].Value}] Deleted Successfully", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _LoadClientData();
+                    _fillAllAccountNumberInComboBox();
+                }
+                else
+                {
+                    MessageBox.Show("Error", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
     }
 }

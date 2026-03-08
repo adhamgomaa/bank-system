@@ -42,9 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="clsClient.cs" />
+    <Compile Include="clsCryptography.cs" />
     <Compile Include="clsGlobal.cs" />
     <Compile Include="clsPeople.cs" />
-    <Compile Include="TransactionEventArgs.cs" />
     <Compile Include="clsUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

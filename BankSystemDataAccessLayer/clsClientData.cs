@@ -10,301 +10,364 @@ namespace BankSystemDataAccessLayer
 {
     public class clsClientData
     {
-        public static bool FindClient(int clientId, ref int accountNumber, ref int personId, ref int pinCode, ref double balance)
+        public static bool FindClient(int clientId, ref int accountNumber, ref int personId, ref int pinCode, ref decimal balance)
         {
             bool isFound = false;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT * FROM ClientInformation WHERE ClientID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", clientId);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    isFound = true;
-                    accountNumber = (int)reader["AccountNumber"];
-                    personId = (int)reader["PersonID"];
-                    pinCode = (int)reader["PinCode"];
-                    balance = (double)reader["Balance"];
+                    using (SqlCommand command = new SqlCommand("SP_FindClientById", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@clientId", clientId);
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                accountNumber = (int)reader["AccountNumber"];
+                                personId = (int)reader["PersonID"];
+                                pinCode = (int)reader["PinCode"];
+                                balance = (decimal)reader["Balance"];
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 isFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return isFound;
         }
 
-        public static bool FindClient(ref int clientId, int accountNumber, ref int personId, ref int pinCode, ref double balance)
+        public static bool FindClient(ref int clientId, int accountNumber, ref int personId, ref int pinCode, ref decimal balance)
         {
             bool isFound = false;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT * FROM ClientInformation WHERE AccountNumber = @accNum";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@accNum", accountNumber);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    isFound = true;
-                    clientId = (int)reader["ClientID"];
-                    personId = (int)reader["PersonID"];
-                    pinCode = (int)reader["PinCode"];
-                    balance = (double)reader["Balance"];
+                    using (SqlCommand command = new SqlCommand("SP_FindClientByAccNum", connection))
+                    {
+                        command.CommandType= CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@accNum", accountNumber);
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                clientId = (int)reader["ClientID"];
+                                personId = (int)reader["PersonID"];
+                                pinCode = (int)reader["PinCode"];
+                                balance = (decimal)reader["Balance"];
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 isFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return isFound;
         }
-        public static int AddNewClient(int accNum, int personId, int code, double balance)
+        public static int AddNewClient(int accNum, int personId, int code, decimal balance)
         {
             int clientId = -1;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "INSERT INTO ClientInformation Values (@accNum, @personId, @code, @balance); SELECT SCOPE_IDENTITY();";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@accNum", accNum);
-            command.Parameters.AddWithValue("@personId", personId);
-            command.Parameters.AddWithValue("@code", code);
-            command.Parameters.AddWithValue("@balance", balance);
             try
             {
-                connection.Open();
-                object result = command.ExecuteScalar();
-                if (result != null && int.TryParse(result.ToString(), out int insertedIn))
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    clientId = insertedIn;
+                    using (SqlCommand command = new SqlCommand("SP_AddNewClient", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@accNum", accNum);
+                        command.Parameters.AddWithValue("@personId", personId);
+                        command.Parameters.AddWithValue("@pinCode", code);
+                        command.Parameters.AddWithValue("@balance", balance);
+                        SqlParameter outputId = new SqlParameter("@clientId", SqlDbType.Int);
+                        outputId.Direction = ParameterDirection.Output;
+                        command.Parameters.Add(outputId);
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        clientId = (int)outputId.Value;
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return clientId;
         }
-        public static bool UpdateClient(int clientId, int accNum, int personId, int code, double balance)
+        public static bool UpdateClient(int clientId, int accNum, int personId, int code, decimal balance)
         {
             int rowAffected = 0;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "UPDATE ClientInformation set AccountNumber = @acc, PersonID = @personId, PinCode = @code, Balance = @balance WHERE ClientID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@acc", accNum);
-            command.Parameters.AddWithValue("@personId", personId);
-            command.Parameters.AddWithValue("@code", code);
-            command.Parameters.AddWithValue("@balance", balance);
-            command.Parameters.AddWithValue("@id", clientId);
             try
             {
-                connection.Open();
-                rowAffected = command.ExecuteNonQuery();
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand("SP_UpdateClient", connection))
+                    {
+                        command.CommandType= CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@accNum", accNum);
+                        command.Parameters.AddWithValue("@personId", personId);
+                        command.Parameters.AddWithValue("@pinCode", code);
+                        command.Parameters.AddWithValue("@balance", balance);
+                        command.Parameters.AddWithValue("@clientId", clientId);
+                        connection.Open();
+                        rowAffected = command.ExecuteNonQuery();
+                    }
+                }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
                 return false;
-            }
-            finally
-            {
-                connection.Close();
             }
             return rowAffected > 0;
         }
         public static bool DeleteClient(int clientId)
         {
             int rowAffected = 0;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "Delete from ClientInformation WHERE ClientID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", clientId);
             try
             {
-                connection.Open();
-                rowAffected = command.ExecuteNonQuery();
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand("SP_DeleteClient", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@clientId", clientId);
+                        connection.Open();
+                        rowAffected = command.ExecuteNonQuery();
+                    }
+                }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
                 return false;
-            }
-            finally
-            {
-                connection.Close();
             }
             return rowAffected > 0;
         }
         public static DataTable GetAllClients()
         {
             DataTable dt = new DataTable();
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT * from Client_view";
-            SqlCommand command = new SqlCommand(query, connection);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.HasRows)
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    dt.Load(reader);
+                    using (SqlCommand command = new SqlCommand("SP_GetAllClients", connection))
+                    {
+                        command.CommandType=CommandType.StoredProcedure;
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return dt;
         }
         public static bool ClientIsExist(int ClientId)
         {
             bool isExist = false;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT found = 1 FROM ClientInformation WHERE ClientID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", ClientId);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    isExist = true;
+                    using (SqlCommand command = new SqlCommand("SP_ClientIsExists", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@clientId", ClientId);
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isExist = true;
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 isExist = false;
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return isExist;
         }
-        public static float GetBalanceByAccountNumber(int accountNumber)
+        public static decimal GetBalanceByAccountNumber(int accountNumber)
         {
-            float balance = 0;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT Balance FROM ClientInformation WHERE AccountNumber = @accNum";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@accNum", accountNumber);
+            decimal balance = 0;
             try
             {
-                connection.Open();
-                object result = command.ExecuteScalar();
-                if (result != null && float.TryParse(result.ToString(), out float total))
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    balance = total;
+                    using (SqlCommand command = new SqlCommand("SP_GetClientBalance", connection))
+                    {
+                        command.CommandType=CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@accNum", accountNumber);
+                        SqlParameter output = new SqlParameter("@balance", SqlDbType.Decimal);
+                        output.Direction = ParameterDirection.Output;
+                        command.Parameters.Add(output);
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        balance = (decimal)output.Value;
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return balance;
         }
-        public static float GetTotalBalances()
+        public static decimal GetTotalBalances()
         {
-            float balance = 0;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT SUM(Balance) FROM ClientInformation";
-            SqlCommand command = new SqlCommand(query, connection);
+            decimal balance = 0;
             try
             {
-                connection.Open();
-                object result = command.ExecuteScalar();
-                if (result != null && float.TryParse(result.ToString(), out float total))
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    balance = total;
+                    using (SqlCommand command = new SqlCommand("SP_GetTotalBalance", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        SqlParameter output = new SqlParameter("@totalBalance", SqlDbType.Decimal);
+                        output.Direction = ParameterDirection.Output;
+                        command.Parameters.Add(output);
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        balance = (decimal)output.Value;
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return balance;
+        }
+
+        public static bool Deposit(int AccNum, decimal amount)
+        {
+            int rowAffected = 0;
+            try
+            {
+                using(SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using( SqlCommand command = new SqlCommand("SP_Deposit", connection))
+                    {
+                        command.CommandType=CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@accNum", AccNum);
+                        command.Parameters.AddWithValue("@amount", amount);
+                        connection.Open();
+                        rowAffected = command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
+                return false;
+            }
+            return rowAffected > 0;
+        }
+
+        public static bool Withdrawal(int AccNum, decimal amount)
+        {
+            int rowAffected = 0;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand("SP_Withdrawal", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@accNum", AccNum);
+                        command.Parameters.AddWithValue("@amount", amount);
+                        connection.Open();
+                        rowAffected = command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
+                return false;
+            }
+            return rowAffected > 0;
         }
 
         public static DataTable GetAllTransfer()
         {
             DataTable dt = new DataTable();
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT * from TransferLog";
-            SqlCommand command = new SqlCommand(query, connection);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.HasRows)
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    dt.Load(reader);
+                    using (SqlCommand command = new SqlCommand("SP_TransferLog", connection))
+                    {
+                        command.CommandType= CommandType.StoredProcedure;
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return dt;
         }
 
-        public static bool AddNewTransfer(DateTime date, int sAcc, int rAcc, double amount, double sBalance, double rBalance, int userId)
+        public static bool AddNewTransfer(int sAcc, int rAcc, decimal amount, int userId)
         {
             int transferId = -1;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "INSERT INTO TransferLog Values (@date, @sAcc, @rAcc, @amount, @sBalance, @rBalance, @userId); SELECT SCOPE_IDENTITY();";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@date", date);
-            command.Parameters.AddWithValue("@sAcc", sAcc);
-            command.Parameters.AddWithValue("@rAcc", rAcc);
-            command.Parameters.AddWithValue("@amount", amount);
-            command.Parameters.AddWithValue("@sBalance", sBalance);
-            command.Parameters.AddWithValue("@rBalance", rBalance);
-            command.Parameters.AddWithValue("@userId", userId);
             try
             {
-                connection.Open();
-                object result = command.ExecuteScalar();
-                if (result != null && int.TryParse(result.ToString(), out int insertedIn))
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    transferId = insertedIn;
+                    using (SqlCommand command = new SqlCommand("SP_Transfer", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@FromAccNum", sAcc);
+                        command.Parameters.AddWithValue("@ToAccNum", rAcc);
+                        command.Parameters.AddWithValue("@amount", amount);
+                        command.Parameters.AddWithValue("@userId", userId);
+                        SqlParameter output = new SqlParameter("@transferId", SqlDbType.Int);
+                        output.Direction = ParameterDirection.Output;
+                        command.Parameters.Add(output);
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        transferId = (int)output.Value;
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return transferId > -1;
         }

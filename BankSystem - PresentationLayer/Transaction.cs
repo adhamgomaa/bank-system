@@ -17,7 +17,6 @@ namespace BankSystem___PresentationLayer
         DataView dvClients;
         DataView dvTransfer;
         int accNum = -1;
-        public event EventHandler<clsClient> OnTransactionChanged;
         public Transaction(int accNum)
         {
             InitializeComponent();
@@ -158,23 +157,16 @@ namespace BankSystem___PresentationLayer
             {
                 return;
             }
-            clsClient updateBalance = clsClient.FindClientByAccNum(Convert.ToInt32(cbAccNumDeposite.Text));
-            if (updateBalance != null)
+            if (MessageBox.Show($"Are you sure to preform this transaction?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
             {
-                updateBalance.TransactionChanged += HandleDepositeTransaction;
-                if (MessageBox.Show($"Are you sure to preform this transaction?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
+                if(clsClient.Deposit(Convert.ToInt32(cbAccNumDeposite.Text), Convert.ToDecimal(numDeposite.Value)))
                 {
-                    updateBalance.Deposit(Convert.ToDouble(numDeposite.Value));
+                    MessageBox.Show($"Client With AccountNumber {cbAccNumDeposite.Text} Deposited Amount with value ${numDeposite.Value}", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _LoadClientDataInTotalBalance();
                 }
             }
             cbAccNumDeposite.SelectedIndex = -1;
             numDeposite.Value = 0;
-        }
-
-        private void HandleDepositeTransaction(object sender, TransactionEventArgs e)
-        {
-            MessageBox.Show($"Client With AccountNumber {e.accountNumber} Deposited Amount with value ${-e.transactionAmount}, then your balance become ${e.newBalance} Successfully", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void cbAccNumWithdraw_SelectedIndexChanged(object sender, EventArgs e)
@@ -185,12 +177,10 @@ namespace BankSystem___PresentationLayer
                 lblBalanceWithdraw.Visible = false;
                 return;
             }
-            decimal balance = (decimal)clsClient.GetBalanceByAccNum(Convert.ToInt32(cbAccNumWithdraw.Text));
+            decimal balance = clsClient.GetBalanceByAccNum(Convert.ToInt32(cbAccNumWithdraw.Text));
             lblCurrentBalanceWithdraw.Visible = true;
             lblBalanceWithdraw.Text = "$ " + balance.ToString();
             lblBalanceWithdraw.Visible = true;
-            numWithdraw.Maximum = balance;
-            numWithdraw.Value = numWithdraw.Maximum;
         }
 
         private void btnWithdraw_Click(object sender, EventArgs e)
@@ -199,26 +189,19 @@ namespace BankSystem___PresentationLayer
             {
                 return;
             }
-            clsClient updateBalance = clsClient.FindClientByAccNum(Convert.ToInt32(cbAccNumWithdraw.Text));
-            if (updateBalance != null)
+            if (MessageBox.Show($"Are you sure to preform this transaction?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
             {
-                updateBalance.TransactionChanged += HandleWithdrawTransaction;
-                if (MessageBox.Show($"Are you sure to preform this transaction?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
+                if(clsClient.Withdrawal(Convert.ToInt32(cbAccNumWithdraw.Text), Convert.ToDecimal(numWithdraw.Value)))
                 {
-                    if(!updateBalance.Withdraw(Convert.ToDouble(numWithdraw.Value)))
-                    {
-                        MessageBox.Show("Your balance is not enough", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    MessageBox.Show($"Client With AccountNumber {cbAccNumWithdraw.Text} Withrawed Amount with value ${numWithdraw.Value}", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _LoadClientDataInTotalBalance();
+                } else
+                {
+                    MessageBox.Show($"Insufficient balance, your balance is lower than the amount", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             cbAccNumWithdraw.SelectedIndex = -1;
             numWithdraw.Value = 0;
-        }
-
-        private void HandleWithdrawTransaction(object sender, TransactionEventArgs e)
-        {
-            MessageBox.Show($"Client With AccountNumber {e.accountNumber} Withrawed Amount with value ${e.transactionAmount}, then your balance become ${e.newBalance} Successfully", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void _LoadClientDataInTotalBalance()
@@ -259,7 +242,6 @@ namespace BankSystem___PresentationLayer
 
         private void cbAccFrom_SelectedIndexChanged(object sender, EventArgs e)
         {
-            decimal balanceFrom = (decimal)clsClient.GetBalanceByAccNum(Convert.ToInt32(cbAccFrom.Text.Trim()));
             if (cbAccFrom.SelectedIndex == -1)
             {
                 cbAccTo.SelectedIndex = -1;
@@ -268,6 +250,7 @@ namespace BankSystem___PresentationLayer
                 lblBalanceFrom.Visible = false;
                 return;
             }
+            decimal balanceFrom = clsClient.GetBalanceByAccNum(Convert.ToInt32(cbAccFrom.Text.Trim()));
             if ((int)balanceFrom == 0)
             {
                 MessageBox.Show($"Cannot Transfer From Account Number ({cbAccFrom.Text}) Balance is $0", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -281,8 +264,6 @@ namespace BankSystem___PresentationLayer
             lblCurrentFrom.Visible = true;
             lblBalanceFrom.Text = "$ " + balanceFrom.ToString();
             lblBalanceFrom.Visible = true;
-            numTransfer.Maximum = (int)balanceFrom;
-            numTransfer.Value = numTransfer.Maximum;
             cbAccTo.Items.Clear();
             for (int i = 0; i < cbAccFrom.Items.Count; i++)
             {
@@ -313,25 +294,17 @@ namespace BankSystem___PresentationLayer
             {
                 return;
             }
-            clsClient FromClient = clsClient.FindClientByAccNum(Convert.ToInt32(cbAccFrom.Text));
-            clsClient ToClient = clsClient.FindClientByAccNum(Convert.ToInt32(cbAccTo.Text));
-            if (FromClient != null && ToClient != null)
+            if (MessageBox.Show($"Are you sure to preform this transaction?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
             {
-                FromClient.balance -= Convert.ToDouble(numTransfer.Value);
-                ToClient.balance += Convert.ToDouble(numTransfer.Value);
-                if (MessageBox.Show($"Are you sure to preform this transaction?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
+                if(clsClient.AddNewTransfer(Convert.ToInt32(cbAccFrom.Text), Convert.ToInt32(cbAccTo.Text), Convert.ToDecimal(numTransfer.Value), clsGlobal.CurrentUser.userId))
                 {
-                    if (FromClient.Save() && ToClient.Save())
-                    {
-                        MessageBox.Show($"Transfer Done Successfully", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        _LoadClientDataInTotalBalance();
-                        FromClient.AddNewTransfer(FromClient.accountNumber, ToClient.accountNumber, Convert.ToDouble(numTransfer.Value), FromClient.balance, ToClient.balance, clsGlobal.CurrentUser.userId);
-                        _LoadTransferLog();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    MessageBox.Show($"Transfer Done Successfully", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _LoadClientDataInTotalBalance();
+                    _LoadTransferLog();
+                }
+                else
+                {
+                    MessageBox.Show("Insufficient balance, your balance is lower than the amount", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             cbAccFrom.SelectedIndex = -1;

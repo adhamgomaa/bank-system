@@ -18,9 +18,7 @@ namespace BankSystemBusinessLayer
         public int personId { get; set; }
         public clsPeople personInfo { get; private set; }
         public int pinCode { get; set; }
-        public double balance { get; set; }
-
-        public event EventHandler<TransactionEventArgs> TransactionChanged;
+        public decimal balance { get; set; }
         public clsClient()
         {
             clientId = -1;
@@ -31,7 +29,7 @@ namespace BankSystemBusinessLayer
             mode = enMode.Add;
         }
 
-        private clsClient(int clientId, int accountNumber, int personId, int pinCode, double balance)
+        private clsClient(int clientId, int accountNumber, int personId, int pinCode, decimal balance)
         {
             this.clientId = clientId;
             this.accountNumber = accountNumber;
@@ -40,30 +38,6 @@ namespace BankSystemBusinessLayer
             this.balance = balance;
             personInfo = clsPeople.FindPerson(personId);
             mode = enMode.Update;
-        }
-
-        public void Deposit(double amount)
-        {
-            double currentBalance = balance;
-            balance += amount;
-            this.Save();
-            OnTransactionChanged(currentBalance, amount);
-        }
-
-        public bool Withdraw(double amount)
-        {
-            if (amount > balance)
-                return false;
-            double currentBalance = balance;
-            balance -= amount;
-            this.Save();
-            OnTransactionChanged(currentBalance, -amount);
-            return true;
-        }
-
-        protected virtual void OnTransactionChanged(double currentBalance, double transactionAmount)
-        {
-            TransactionChanged.Invoke(this, new TransactionEventArgs(this.accountNumber, currentBalance, transactionAmount));
         }
 
         private bool _AddNewClient()
@@ -80,7 +54,7 @@ namespace BankSystemBusinessLayer
         public static clsClient FindClient(int ClientId)
         {
             int accNum = 0, personId = 0, pinCode = 0;
-            double balance = 0;
+            decimal balance = 0;
             if (clsClientData.FindClient(ClientId, ref accNum, ref personId, ref pinCode, ref balance))
             {
                 return new clsClient(ClientId, accNum, personId, pinCode, balance);
@@ -91,7 +65,7 @@ namespace BankSystemBusinessLayer
         public static clsClient FindClientByAccNum(int accNum)
         {
             int clientId = 0, personId = 0, pinCode = 0;
-            double balance = 0;
+            decimal balance = 0;
             if (clsClientData.FindClient(ref clientId, accNum, ref personId, ref pinCode, ref balance))
             {
                 return new clsClient(clientId, accNum, personId, pinCode, balance);
@@ -114,19 +88,29 @@ namespace BankSystemBusinessLayer
             return clsClientData.ClientIsExist(ClientId);
         }
 
-        public static float GetBalanceByAccNum(int accNum)
+        public static decimal GetBalanceByAccNum(int accNum)
         {
             return clsClientData.GetBalanceByAccountNumber(accNum);
         }
 
-        public static float GetTotalBalances()
+        public static decimal GetTotalBalances()
         {
             return clsClientData.GetTotalBalances();
         }
 
-        public bool AddNewTransfer(int sAcc, int rAcc, double amount, double sBalance, double rBalance, int userId)
+        public static bool Deposit(int accNum, decimal amount)
         {
-            return clsClientData.AddNewTransfer(DateTime.Now, sAcc, rAcc, amount, sBalance, rBalance, userId);
+            return clsClientData.Deposit(accNum, amount);
+        }
+
+        public static bool Withdrawal(int accNum, decimal amount)
+        {
+            return clsClientData.Withdrawal(accNum, amount);
+        }
+
+        public static bool AddNewTransfer(int sAcc, int rAcc, decimal amount, int userId)
+        {
+            return clsClientData.AddNewTransfer(sAcc, rAcc, amount, userId);
         }
 
         public static DataView GetAllTransfers()

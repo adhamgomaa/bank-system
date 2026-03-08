@@ -15,34 +15,36 @@ namespace BankSystemDataAccessLayer
             ref string phone, ref byte gender, ref DateTime bDate)
         {
             bool isFound = false;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "Select * from People Where PersonID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", id);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    isFound = true;
-                    firstName = (string)reader["FirstName"];
-                    secName = (string)reader["SecondName"];
-                    lastName = (string)reader["LastName"];
-                    email = (string)reader["Email"];
-                    phone = (string)reader["Phone"];
-                    gender = (byte)reader["Gender"];
-                    bDate = (DateTime)reader["BirthDate"];
+                    using (SqlCommand command = new SqlCommand("SP_FindPersonById", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@personId", id);
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                firstName = (string)reader["FirstName"];
+                                secName = (string)reader["SecondName"];
+                                lastName = (string)reader["LastName"];
+                                email = (string)reader["Email"];
+                                phone = (string)reader["Phone"];
+                                gender = (byte)reader["Gender"];
+                                bDate = (DateTime)reader["BirthDate"];
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 isFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return isFound;
         }
@@ -51,31 +53,32 @@ namespace BankSystemDataAccessLayer
             DateTime bDate)
         {
             int personId = -1;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "Insert into People Values (@fname, @secname, @lname, @email, @phone, @gender, @date); SELECT SCOPE_IDENTITY();";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@fname", firstName);
-            command.Parameters.AddWithValue("@secname", secName);
-            command.Parameters.AddWithValue("@lname", lastName);
-            command.Parameters.AddWithValue("@email", email);
-            command.Parameters.AddWithValue("@phone", phone);
-            command.Parameters.AddWithValue("@gender", gender);
-            command.Parameters.AddWithValue("@date", bDate);
             try
             {
-                connection.Open();
-                object result = command.ExecuteScalar();
-                if (result != null && int.TryParse(result.ToString(), out int insertedIn))
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    personId = insertedIn;
+                    using (SqlCommand command = new SqlCommand("SP_AddPerson", connection))
+                    {
+                        command.CommandType= CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@fname", firstName);
+                        command.Parameters.AddWithValue("@secname", secName);
+                        command.Parameters.AddWithValue("@lname", lastName);
+                        command.Parameters.AddWithValue("@email", email);
+                        command.Parameters.AddWithValue("@phone", phone);
+                        command.Parameters.AddWithValue("@gender", gender);
+                        command.Parameters.AddWithValue("@date", bDate);
+                        SqlParameter outputId = new SqlParameter("@personId", SqlDbType.Int);
+                        outputId.Direction = ParameterDirection.Output;
+                        command.Parameters.Add(outputId);
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        personId = (int)outputId.Value;
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-
-            }finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return personId;
         }
@@ -84,27 +87,29 @@ namespace BankSystemDataAccessLayer
             DateTime bDate)
         {
             int rowAffected = 0;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "Update People set FirstName = @fname, SecondName = @secname, LastName = @lname, Email = @email, Phone = @phone, Gender = @gender, BirthDate = @date Where PersonID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@fname", firstName);
-            command.Parameters.AddWithValue("@secname", secName);
-            command.Parameters.AddWithValue("@lname", lastName);
-            command.Parameters.AddWithValue("@email", email);
-            command.Parameters.AddWithValue("@phone", phone);
-            command.Parameters.AddWithValue("@gender", gender);
-            command.Parameters.AddWithValue("@date", bDate);
-            command.Parameters.AddWithValue("@id", id);
             try
             {
-                connection.Open();
-                rowAffected = command.ExecuteNonQuery();
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand("SP_UpdatePerson", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@fname", firstName);
+                        command.Parameters.AddWithValue("@secname", secName);
+                        command.Parameters.AddWithValue("@lname", lastName);
+                        command.Parameters.AddWithValue("@email", email);
+                        command.Parameters.AddWithValue("@phone", phone);
+                        command.Parameters.AddWithValue("@gender", gender);
+                        command.Parameters.AddWithValue("@date", bDate);
+                        command.Parameters.AddWithValue("@personId", id);
+                        connection.Open();
+                        rowAffected = command.ExecuteNonQuery();
+                    }
+                }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return rowAffected > 0;
         }
@@ -112,21 +117,22 @@ namespace BankSystemDataAccessLayer
         public static bool DeletePerson(int id)
         {
             int rowAffected = 0;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "Delete from People Where PersonID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", id);
             try
             {
-                connection.Open();
-                rowAffected = command.ExecuteNonQuery();
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand("SP_DeletePerson", connection))
+                    {
+                        command.CommandType= CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@personId", id);
+                        connection.Open();
+                        rowAffected = command.ExecuteNonQuery();
+                    }
+                }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return rowAffected > 0;
         }
@@ -134,23 +140,26 @@ namespace BankSystemDataAccessLayer
         public static bool IsPersonExist(int id)
         {
             bool isFound = false;
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "Select found = 1 from People Where PersonID = @id";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", id);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if(reader.HasRows)
-                    isFound = true;
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
+                {
+                    using (SqlCommand command = new SqlCommand("SP_IsPersonExist", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@id", id);
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                isFound = true;
+                        }
+                    }
+                }
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return isFound;
         }
@@ -158,25 +167,27 @@ namespace BankSystemDataAccessLayer
         public static DataTable GetAllPeople()
         {
             DataTable dt = new DataTable();
-            SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString);
-            string query = "SELECT * from People";
-            SqlCommand command = new SqlCommand(query, connection);
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-                if (reader.HasRows)
+                using (SqlConnection connection = new SqlConnection(clsBankSystemDataSettings.ConnectionString))
                 {
-                    dt.Load(reader);
+                    using (SqlCommand command = new SqlCommand("SP_GetAllPeople", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
                 }
-                reader.Close();
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-            }
-            finally
-            {
-                connection.Close();
+                clsLogger.LoggingAllExepctions(ex.Message, System.Diagnostics.EventLogEntryType.Error);
             }
             return dt;
         }

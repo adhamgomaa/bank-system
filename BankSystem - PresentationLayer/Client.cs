@@ -114,7 +114,7 @@ namespace BankSystem___PresentationLayer
             newClient.accountNumber = Convert.ToInt32(txtAccNum.Text);
             newClient.pinCode = Convert.ToInt32(txtCode.Text);
             newClient.personId = Convert.ToInt32(cbPersonId.Text);
-            newClient.balance = Convert.ToDouble(numBalance.Value);
+            newClient.balance = Convert.ToDecimal(numBalance.Value);
             if(MessageBox.Show($"Are you sure to add a new client?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
             {
                 if(newClient.Save())
@@ -159,13 +159,13 @@ namespace BankSystem___PresentationLayer
                 txtUpdateEmail.Text = clientData.personInfo.email;
                 txtUpdatePhone.Text = clientData.personInfo.phone;
                 if(clientData.personInfo.gender == 0)
-                    rbUpdateMale.Enabled = true;
+                    rbUpdateMale.Checked = true;
                 else
-                    rbUpdateFemale.Enabled = true;
+                    rbUpdateFemale.Checked = true;
                 dtUpdateBirth.Value = clientData.personInfo.birthDate;
                 txtUpdateAcc.Text = clientData.accountNumber.ToString();
-                txtUpdateCode.Text = clientData.pinCode.ToString();
-                numUpdateBalance.Value = (decimal)clientData.balance;
+                txtUpdateCode.Text = string.Empty;
+                numUpdateBalance.Value = clientData.balance;
             }
         }
         private void btnUpdate_Click(object sender, EventArgs e)
@@ -177,9 +177,11 @@ namespace BankSystem___PresentationLayer
             clsClient clientData = clsClient.FindClient(Convert.ToInt32(cbClientId.Text));
             if (clientData != null)
             {
-                clientData.pinCode = Convert.ToInt32(txtUpdatePersonId.Text);
-                clientData.accountNumber = Convert.ToInt32(txtUpdateAcc.Text);
-                clientData.balance = Convert.ToDouble(numUpdateBalance.Value);
+               if(txtUpdateCode.Text.Trim() != string.Empty)
+                    clientData.pinCode = Convert.ToInt32(txtUpdateCode.Text.Trim());
+
+                clientData.accountNumber = Convert.ToInt32(txtUpdateAcc.Text.Trim());
+                clientData.balance = Convert.ToDecimal(numUpdateBalance.Value);
                 if (MessageBox.Show($"Are you sure to update the client?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                 {
                     if (clientData.Save())
